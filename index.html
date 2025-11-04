@@ -337,8 +337,8 @@
       
       var idx = 0;
       
-      modal.children[0].children[1].style.gridTemplateColumns = `repeat(${w}, ${step}px)`;
-      modal.children[0].children[1].style.gridTemplateRows = `repeat(${h}, ${step}px)`;
+      modal.children[0].children[2].style.gridTemplateColumns = `repeat(${w}, ${step}px)`;
+      modal.children[0].children[2].style.gridTemplateRows = `repeat(${h}, ${step}px)`;
       
       for (var y = 0; y < h; y++) {
       	for (var x = 0; x < w; x++) {
@@ -355,7 +355,7 @@
             }
           };
           
-          modal.children[0].children[1].appendChild(block);
+          modal.children[0].children[2].appendChild(block);
           
           idx++;
         }
