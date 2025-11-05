@@ -209,7 +209,7 @@
           <div class="pixelSelect" style="background:#fff;" onclick="color = this.style.background;"></div>
           <div class="pixelSelect" style="background:#000;" onclick="color = this.style.background;"></div>
         </div>
-      	<div class="texContainer"></div>
+        <div class="texContainer"></div>
         <button>Save</button>
       </div>
     </div>
@@ -332,7 +332,6 @@
     var color = "#000";
     
     function createAndEditTex(name, w, h) {
-      alert("Func has been reached");
       if (name == null || !w || !h) return;
       var modal = document.getElementById("editTexModal");
       var editor = modal.children[0].children[2];
@@ -340,7 +339,7 @@
       editor.innerHTML = "";
       
       modal.children[0].children[3].addEventListener("click", function() {
-        //genTex(this.previousElementSibling, name);
+        genTex(this.previousElementSibling, name);
         this.parentElement.parentElement.style.display = "none";
       });
       
@@ -379,21 +378,7 @@
     }
 
     function genTex(elem, name) {
-      /*var canvas2 = document.createElement("canvas");
-      canvas2.width = 480;
-      canvas2.height = 480;
-      var ctx2 = canvas2.getContext("2d");
-      var x = 0;
-      var y = 0;
-      
-      Array.from(elem.children).forEach(function(e) {
-        ctx2.fillStyle = !e.className ? e.style.background || "transparent";
-        ctx2.fillRect(x, y, parseInt(e.style.width), parseInt(e.style.height));
-        x += parseInt(e.style.width);
-        y += parseInt(e.style.height);
-      });
-
-      files[name] = canvas2.toDataURL();*/
+      alert("Nothing here yet :D");
     }
     
     
