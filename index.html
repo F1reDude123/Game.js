@@ -189,7 +189,7 @@
         <input id="h" type="number" oninput="this.value = Math.min(this.max || 100, Math.max(this.min || 0, this.value));" placeholder="Height" min="1" max="1024">
         <br>
         <br>
-        <button onclick="this.parentElement.parentElement.style.display = 'none'; createAndEditTex(document.getElementById('texName').value, parseInt(document.getElementById('w').value), parseInt(document.getElementById('h').value));">Create</button>
+        <button onclick="createAndEditTex('Togore', 16, 16);">Create</button>
       </div>
     </div>
     
@@ -332,48 +332,7 @@
     var color = "#000";
     
     function createAndEditTex(name, w, h) {
-      if (!name || !w || !h) return;
-      var modal = document.getElementById("editTexModal");
-
-      modal.children[0].children[2].innerHTML = "";
-      
-      /*modal.children[0].children[3].onclick = function() {
-        genTex(this.previousElementSibling, name);
-        this.parentElement.parentElement.style.display = "none";
-      };*/
-      
-      var step = Math.max(480 / w, 480 / h);
-      
-      var idx = 0;
-      
-      modal.children[0].children[2].style.gridTemplateColumns = `repeat(${w}, ${step}px)`;
-      modal.children[0].children[2].style.gridTemplateRows = `repeat(${h}, ${step}px)`;
-      
-      for (var y = 0; y < h; y++) {
-      	for (var x = 0; x < w; x++) {
-          var block = document.createElement("div");
-          block.className = idx % 2 == 0 ? "pixelWhite" : "pixelDark";
-          block.style.width = step + "px";
-          block.style.height = step + "px";
-          block.onmousedown = function() {
-            this.className = "";
-          	this.style.background = color;
-          };
-          block.onmouseover = function() {
-          	if (mousedown) {
-              this.className = "";
-              this.style.background = color;
-            }
-          };
-          
-          modal.children[0].children[2].appendChild(block);
-          
-          idx++;
-        }
-        idx++;
-      }
-      
-      modal.style.display = "block";
+      alert(name);
     }
 
     function genTex(elem, name) {
