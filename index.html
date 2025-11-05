@@ -210,7 +210,7 @@
           <div class="pixelSelect" style="background:#000;" onclick="color = this.style.background;"></div>
         </div>
       	<div class="texContainer"></div>
-        <button onclick="genTex(this.previousElementSibling, 'noname'); this.parentElement.parentElement.style.dislay = 'none';">Save</button>
+        <button onclick="genTex(this.previousElementSibling, 'noname'); this.parentElement.parentElement.style.display = 'none';">Save</button>
       </div>
     </div>
     
@@ -339,7 +339,7 @@
       
       modal.children[0].children[3].onclick = function() {
         genTex(this.previousElementSibling, name);
-        this.parentElement.parentElement.style.dislay = "none";
+        this.parentElement.parentElement.style.display = "none";
       };
       
       var step = Math.max(480 / w, 480 / h);
