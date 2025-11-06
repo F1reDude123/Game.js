@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Game.js</title>
     <style>
       body {
         background:#222;
@@ -123,13 +122,16 @@
 
       .pixelWhite {
         background:#fff;
+        border:none;
       }
       .pixelDark {
         background:#aaa;
+        border:none;
       }
       .pixelSelect {
         width:48px;
         height:48px;
+        border:none;
       }
 
       .pixelWhite:hover, .pixelDark:hover {
@@ -141,6 +143,7 @@
         width:480px;
         height:480px;
         display:grid;
+        justify-content:center;
       }
 
       .colorContainer {
@@ -324,7 +327,6 @@
       var color = "#000";
 
       function createAndEditTex(name, w, h) {
-        alert("yeeahh");
         if (name == null || !w || !h) return;
         var modal = document.getElementById("editTexModal");
         var editor = modal.children[0].children[2];
@@ -336,7 +338,7 @@
           this.parentElement.parentElement.style.display = "none";
         });
 
-        var step = Math.max(480 / w, 480 / h);
+        var step = Math.min(480 / w, 480 / h);
 
         var idx = 0;
 
