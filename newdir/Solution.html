@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<!-- take that you mother fucking css bug-->
+<html>
+  <head>
+    <title>Game.js</title>
+    <style>
+      body {
+        background:#222;
+        color:#fff;
+        margin-left:308px;
+        font-family:"Roboto";
+        overflow:clip;
+      }
+
+      .sidebar {
+        background:#333;
+        position:absolute;
+        top:0;
+        left:0;
+        width:300px;
+        height:100%;
+        overflow:scroll;
+      }
+      .sidebar * {
+      	margin-left:20px;
+      }
+      hr {
+        width:260px;
+        border:1px solid #555;
+      }
+
+      #canvas {
+        background:#000;
+        width:100%;
+        overflow:clip;
+        aspect-ratio:16/9;
+        display:block;
+        position:relative;
+      }
+      #canvas * {
+        position:absolute;
+      }
+      .modalBg {
+        background:#00000050;
+        position:absolute;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        z-index:1;
+        display:none;
+      }
+      .modal {
+        padding:20px;
+        background:#333;
+        border-radius:10px;
+        width:300px;
+        text-align:center;
+        position:absolute;
+        top:50%;
+        left:50%;
+        transform:translate(-50%, -50%);
+      }
+      footer {
+        background:#222;
+        border-top:1px solid #555;
+        position:absolute;
+        bottom:0;
+        width:calc(100% - 316px);
+        height:30px;
+      }
+
+      input, select {
+        background:#222;
+        color:#fff;
+        border:1px solid #555;
+        padding:5px;
+        border-radius:5px;
+      }
+
+      select {
+        color-scheme:dark;
+      }
+
+      input[type="range"] {
+        appearance:none;
+        background:#fff;
+        border:none;
+        height:3px;
+        padding:0px;
+      }
+      input[type="number"] {
+        width:50px;
+      }
+
+      button {
+        background:#36f;
+        border:1px solid #36f;
+        color:#fff;
+        padding:5px;
+        border-radius:5px;
+      }
+      button.footerBtn {
+        background:#222;
+        border:none;
+      }
+      button.footerBtn:hover {
+        background:#333;
+      }
+      button.footerBtn:active {
+        background:#222;
+      }
+      .xBtn {
+        position:absolute;
+        top:0;
+        right:0;
+        background:#f00;
+        border-top-right-radius:10px;
+        width:20px;
+        height:20px;
+        color:#fff;
+        user-select:none;
+      }
+
+      .pixelWhite {
+        background:#fff;
+        border:none;
+      }
+      .pixelDark {
+        background:#aaa;
+        border:none;
+      }
+      .pixelSelect {
+        width:48px;
+        height:48px;
+        border:none;
+      }
+
+      .pixelWhite:hover, .pixelDark:hover, .pixelSelect:hover {
+        background:#ccc;
+      }
+
+      .texContainer {
+        max-width:480px;
+        max-height:480px;
+        width:fit-content;
+        height:fit-content;
+        display:grid;
+        justify-content:center;
+        padding:0px;
+      }
+
+      .colorContainer {
+        width:480px;
+        height:48px;
+        display:flex;
+      }
+      .card {
+      	width:100px;
+        height:120px;
+        padding:10px;
+        text-align:center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sidebar" id="sidebar">
+      <h2>Inspector</h2>
+      <hr>
+      <button onclick="document.getElementById('addElemModal').style.display = 'block';">+ Add element</button>
+    </div>
+    <div class="canvas" id="canvas"></div>
+
+    <!-- Modal for adding elements -->
+    <div class="modalBg" id="addElemModal">
+      <div class="modal">
+        <span class="xBtn" onclick="this.parentElement.parentElement.style.display = 'none'">&times;</span>
+        <h1>Add element</h1>
+        <br>
+        <input id="elemName" placeholder="Enter element name...">
+        <button onclick="addElem(this.previousElementSibling.value); this.parentElement.parentElement.style.display = 'none'; openInspector(elemProps[this.previousElementSibling.value]);">Add</button>
+      </div>
+    </div>
+    
+    <!-- Modal for managing textures -->
+    <div class="modalBg" id="manageTexModal">
+      <div class="modal" style="width:500px;height:400px;">
+      	<span class="xBtn" onclick="this.parentElement.parentElement.style.display = 'none'">&times;</span>
+        <h1>Textures</h1>
+        <div style="display:flex;flex-direction:row;flex-wrap:wrap;" id="texes"></div>
+      </div>
+    </div>
+
+    <!-- Modal for creating textures -->
+    <div class="modalBg" id="createTexModal">
+      <div class="modal">
+        <span class="xBtn" onclick="this.parentElement.parentElement.style.display = 'none'">&times;</span>
+        <h1>Create texture</h1>
+        <br>
+        <input id="texName" placeholder="Enter texture name...">
+        <br>
+        <input id="w" type="number" oninput="this.value = Math.min(this.max || 100, Math.max(this.min || 0, this.value));" placeholder="Width" min="1" max="1024">
+        <input id="h" type="number" oninput="this.value = Math.min(this.max || 100, Math.max(this.min || 0, this.value));" placeholder="Height" min="1" max="1024">
+        <br>
+        <br>
+        <button onclick="this.parentElement.parentElement.style.display = 'none'; createAndEditTex(document.getElementById('texName').value, parseInt(document.getElementById('w').value), parseInt(document.getElementById('h').value));">Create</button>
+      </div>
+    </div>
+
+    <!-- Modal for editing textures -->
+    <div class="modalBg" id="editTexModal">
+      <div class="modal" style="width:480px;">
+        <span class="xBtn" onclick="this.parentElement.parentElement.style.display = 'none'">&times;</span>
+        <div class="colorContainer">
+          <input type="color" style="width:48px;height:48px;" onchange = "color = this.value;">
+          <div class="pixelSelect" style="background:#f00;" onclick="color = this.style.background;"></div>
+          <div class="pixelSelect" style="background:#f70;" onclick="color = this.style.background;"></div>
+          <div class="pixelSelect" style="background:#ff0;" onclick="color = this.style.background;"></div>
+          <div class="pixelSelect" style="background:#0f0;" onclick="color = this.style.background;"></div>
+          <div class="pixelSelect" style="background:#00f;" onclick="color = this.style.background;"></div>
+          <div class="pixelSelect" style="background:#f0f;" onclick="color = this.style.background;"></div>
+          <div class="pixelSelect" style="background:#940;" onclick="color = this.style.background;"></div>
+          <div class="pixelSelect" style="background:#fff;" onclick="color = this.style.background;"></div>
+          <div class="pixelSelect" style="background:#000;" onclick="color = this.style.background;"></div>
+        </div>
+        <div class="texContainer"></div>
+        <br>
+        <button onclick="">Save</button>
+      </div>
+    </div>
+    
+    <!-- SCRIPTS -->
+    
+    <!-- Modal for managing scripts -->
+    <div class="modalBg" id="manageScriptModal">
+      <div class="modal" style="width:500px;height:400px;">
+      	<span class="xBtn" onclick="this.parentElement.parentElement.style.display = 'none'">&times;</span>
+        <h1>Scripts</h1>
+        <div style="display:flex;flex-direction:row;flex-wrap:wrap;" id="scripts"></div>
+      </div>
+    </div>
+
+    <!-- Modal for creating scripts -->
+    <div class="modalBg" id="createScriptModal">
+      <div class="modal">
+        <span class="xBtn" onclick="this.parentElement.parentElement.style.display = 'none'">&times;</span>
+        <h1>Create script</h1>
+        <br>
+        <input id="scriptName" placeholder="Enter script name...">
+        <br>
+        <button onclick="this.parentElement.parentElement.style.display = 'none'; createAndEditScript(document.getElementById('scriptName').value);">Create</button>
+      </div>
+    </div>
+
+    <!-- Modal for editing scripts -->
+    <div class="modalBg" id="editScriptModal">
+      <div class="modal" style="width:500px;height:400px;">
+        <span class="xBtn" onclick="this.parentElement.parentElement.style.display = 'none'">&times;</span>
+        
+        <button onclick="">Save</button>
+      </div>
+    </div>
+
+    <footer>
+      <button class="footerBtn" onclick="document.getElementById('manageTexModal').style.display = 'block'; openTexes()">Texture editor</button>
+      <button class="footerBtn" onclick="document.getElementById('manageScriptModal').style.display = 'block'; openScripts()">Script editor</button>
+    </footer>
+  </body>
+  <script>
+    var frameRate = 60;
+
+
+    var mousedown = false;
+
+
+    var files = {
+      Gollum: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjDfKWwhP2n5EU7p9jXPxztWy-Tu7nJXThkQ&s",
+      Smeegle: "https://miro.medium.com/1*VtT-3YYSAHOS1ZT0a0_nGQ.jpeg",
+      Gahllum: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjDfKWwhP2n5EU7p9jXPxztWy-Tu7nJXThkQ&s",
+      Smegle: "https://miro.medium.com/1*VtT-3YYSAHOS1ZT0a0_nGQ.jpeg",
+      Gollem: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTjDfKWwhP2n5EU7p9jXPxztWy-Tu7nJXThkQ&s",
+      Smeagol: "https://miro.medium.com/1*VtT-3YYSAHOS1ZT0a0_nGQ.jpeg"
+    };
+    
+    var scripts = {
+      Helloworld: function() { alert("Hello world!"); }
+    };
+
+
+    var elements = {};
+    var elemProps = {};
+
+    function openElemModal() {
+      document.getElementById("addElemModal").style.display = "block";
+    }
+
+    function addElem(name) {
+      var elem = {};
+      var stageW = parseInt(window.getComputedStyle(document.getElementById("canvas")).width);
+      var stageH = parseInt(window.getComputedStyle(document.getElementById("canvas")).height);
+      elemProps[name] = {
+        Texture: { value: null, type: "fSelect"},
+        Width: { value: 50, type: "nInput", min: 0, max: Infinity},
+        Height: { value: 50, type: "nInput", min: 0, max: Infinity},
+        X: { value: 0, type: "nInput", min: -Infinity, max: Infinity},
+        Y: { value: 0, type: "nInput", min: -Infinity, max: Infinity}
+      };
+      
+      var img = new Image();
+      img.src = "";
+      img.style = "";
+      img.onclick = function() { openInspector(elemProps[name]); };
+      document.getElementById("canvas").appendChild(img);
+      elements[name] = img;
+    }
+
+    function openInspector(elem) {
+      var sidebar = document.getElementById("sidebar");
+      sidebar.innerHTML = "<h2>Inspector</h2><hr><button onclick='document.getElementById(\"addElemModal\").style.display = \"block\";'>+ Add element</button>";
+      
+      Object.keys(elem).forEach(e => {
+
+        var p = document.createElement("p");
+        p.textContent = e;
+        sidebar.appendChild(p);
+
+        switch(elem[e].type) {
+          case "tInput":
+            var input = document.createElement("input");
+            input.placeholder = `Enter ${e}...`;
+            input.value = elem[e].value;
+            input.oninput = function() {
+              elem[e].value = this.value;
+            };
+
+            sidebar.appendChild(input);
+
+            break;
+          case "nInput":
+            var input = document.createElement("input");
+            input.type = "number";
+            input.min = elem[e].min || 0;
+            input.max = elem[e].max || Infinity;
+            input.value = elem[e].value;
+            input.oninput = function() {
+              this.value = Math.min(this.max || 100, Math.max(this.min || 0, this.value));
+              elem[e].value = this.value;
+            };
+
+            sidebar.appendChild(input);
+
+            break;
+          case "rInput":
+            var input = document.createElement("input");
+            input.type = "range";
+            input.min = elem[e].min || 0;
+            input.max = elem[e].max || 100;
+            input.value = elem[e].value;
+            input.oninput = function() {
+              elem[e].value = this.value;
+            };
+
+            sidebar.appendChild(input);
+
+            break;
+          case "fSelect":
+            var select = document.createElement("select");
+            select.value = elem[e].value;
+            select.onchange = function() {
+              elem[e].value = this.value;
+            };
+
+            var defOpt = document.createElement("option");
+            defOpt.textContent = "Choose a file";
+            defOpt.selected = true;
+            defOpt.disabled = true;
+
+            select.appendChild(defOpt);
+
+            Object.keys(files).forEach(file => {
+              var opt = document.createElement("option");
+              opt.textContent = file;
+
+              select.appendChild(opt);
+            });
+
+            sidebar.appendChild(select);
+
+            break;
+        }
+
+        sidebar.appendChild(document.createElement("br"));
+      });
+    }
+
+    var color = "#000";
+
+    function createAndEditTex(name, w, h) {
+      if (name == null || !w || !h) return;
+      var modal = document.getElementById("editTexModal");
+      var editor = modal.children[0].children[2];
+
+      editor.innerHTML = "";
+
+      modal.children[0].children[4].onclick = function() {
+        genTex(this.previousElementSibling.previousElementSibling, name, w, h);
+        this.parentElement.parentElement.style.display = "none";
+      };
+
+      var step = Math.floor(Math.min(480 / w, 480 / h));
+
+      var idx = 0;
+
+      editor.style.gridTemplateColumns = `repeat(${w}, ${step}px)`;
+      editor.style.gridTemplateRows = `repeat(${h}, ${step}px)`;
+
+      for (var y = 0; y < h; y++) {
+        for (var x = 0; x < w; x++) {
+          var block = document.createElement("div");
+          block.className = idx % 2 == 0 ? "pixelWhite" : "pixelDark";
+          block.style.width = step + "px";
+          block.style.height = step + "px";
+          block.onmousedown = function() {
+            this.className = "";
+            this.style.background = color;
+          };
+          block.onmouseover = function() {
+            if (mousedown) {
+              this.className = "";
+              this.style.background = color;
+            }
+          };
+
+          editor.appendChild(block);
+
+          idx++;
+        }
+        if (w % 2 == 0) idx++;
+      }
+
+      modal.style.display = "block";
+    }
+
+    function genTex(elem, name, w, h) {
+      var style = window.getComputedStyle(elem);
+      var step = Math.floor(Math.min(parseInt(style.width) / w, parseInt(style.height) / h));
+
+      var canvas2 = document.createElement("canvas");
+      canvas2.height = parseInt(style.height);
+      canvas2.width = parseInt(style.width);
+      var ctx2 = canvas2.getContext("2d");
+
+      var idx = 0;
+      
+      for (var y = 0; y < parseInt(style.height); y += step) {
+        for (var x = 0; x < parseInt(style.width); x += step) {
+          if (elem.children[idx].className == "") {
+          	ctx2.fillStyle = window.getComputedStyle(elem.children[idx]).backgroundColor;
+          	ctx2.fillRect(x, y, step, step);
+          }
+          
+          idx++;
+        }
+      }
+
+      files[name] = canvas2.toDataURL();
+      
+      document.querySelectorAll("select").forEach(select => {
+        select.innerHTML = "";
+      	var defOpt = document.createElement("option");
+        defOpt.textContent = "Choose a file";
+        defOpt.selected = true;
+        defOpt.disabled = true;
+
+        select.appendChild(defOpt);
+
+        Object.keys(files).forEach(file => {
+          var opt = document.createElement("option");
+          opt.textContent = file;
+
+          select.appendChild(opt);
+        });
+      });
+    }
+    
+    function openTexes() {
+      document.getElementById("texes").innerHTML = "";
+      
+      var btn = document.createElement("button");
+      btn.style.width = "100px";
+      btn.style.height = "100px";
+      btn.textContent = "+ Add texture";
+      btn.onclick = function() {
+      	document.getElementById("createTexModal").style.display = 'block';
+      	this.parentElement.parentElement.parentElement.style.display = 'none';
+      };
+      
+      document.getElementById("texes").appendChild(btn);
+      
+      Object.keys(files).forEach(e => {
+      	var img = new Image();
+        img.src = files[e];
+        img.onload = function() {
+          var card = document.createElement("div");
+          card.className = "card";
+          
+          var p = document.createElement("p");
+          p.textContent = e;
+          
+          img.style.maxWidth = "100px";
+          img.style.maxHeight = "70px";
+          
+          card.appendChild(img);
+          card.appendChild(p);
+          
+          document.getElementById("texes").appendChild(card);
+        };
+      });
+    }
+    
+    function createAndEditScript(name) {
+      
+    }
+    
+    function openScripts() {
+      document.getElementById("scripts").innerHTML = "";
+      
+      var btn = document.createElement("button");
+      btn.style.width = "100px";
+      btn.style.height = "100px";
+      btn.textContent = "+ Add script";
+      btn.onclick = function() {
+      	document.getElementById("createScriptModal").style.display = 'block';
+      	this.parentElement.parentElement.parentElement.style.display = 'none';
+      };
+      
+      document.getElementById("scripts").appendChild(btn);
+      
+      Object.keys(scripts).forEach(e => {
+      	var img = new Image();
+        img.src = "https://f1redude123.github.io/Game.js/scriptLogo.svg";
+        var card = document.createElement("div");
+        card.className = "card";
+
+        var p = document.createElement("p");
+        p.textContent = e;
+
+        img.style.maxWidth = "100px";
+        img.style.maxHeight = "70px";
+
+        card.appendChild(img);
+        card.appendChild(p);
+
+        document.getElementById("scripts").appendChild(card);
+      });
+    }
+    
+
+    var canvas = document.getElementById("canvas");
+
+    var loop;
+    var startLoop = function() {
+      loop = setInterval(() => {
+        for (var i of Object.keys(elements)) {
+          elements[i].src = files[elemProps[i].Texture.value];
+          elements[i].style.width = elemProps[i].Width.value + "px";
+          elements[i].style.height = elemProps[i].Height.value + "px";
+          elements[i].style.left = elemProps[i].X.value + "px";
+          elements[i].style.top = elemProps[i].Y.value + "px";
+        }
+      }, 1000/frameRate);
+    }
+
+    startLoop();
+
+
+
+    document.addEventListener("mousedown", function() {
+      mousedown = true;
+    });
+    document.addEventListener("mouseup", function() {
+      mousedown = false;
+    });
+  </script>
+</html>
