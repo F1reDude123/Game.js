@@ -161,6 +161,15 @@
         padding:10px;
         text-align:center;
       }
+      textarea {
+      	width:480px;
+        height:340px;
+        resize:none;
+        background:#222;
+        border-radius:10px;
+        padding:10px;
+        color:#fff;
+      }
     </style>
   </head>
   <body>
@@ -169,7 +178,7 @@
       <hr>
       <button onclick="document.getElementById('addElemModal').style.display = 'block';">+ Add element</button>
     </div>
-    <div class="canvas" id="canvas" onclick="openInspector()"></div>
+    <div class="canvas" id="canvas"></div>
 	
     <!-- Modal for managing textures -->
     <div class="modalBg" id="manageTexModal">
@@ -224,6 +233,7 @@
           <div class="pixelSelect" style="background:#000;" onclick="color = this.style.background;"></div>
         </div>
         <div class="texContainer"></div>
+        <br>
         <button onclick="">Save</button>
       </div>
     </div>
@@ -255,17 +265,41 @@
     <div class="modalBg" id="editScriptModal">
       <div class="modal" style="width:500px;height:400px;">
         <span class="xBtn" onclick="this.parentElement.parentElement.style.display = 'none'">&times;</span>
-        
+        <textarea id="code"></textarea>
         <button onclick="">Save</button>
       </div>
     </div>
-
+    
+    
+    <!-- Modal for project settings -->
+    <div class="modalBg" id="projectSettingsModal">
+      <div class="modal" style="width:500px;height:400px;">
+      	<span class="xBtn" onclick="this.parentElement.parentElement.style.display = 'none'">&times;</span>
+        <h1>Project settings</h1>
+        <br>
+        <p>Background color</p>
+        <input type="color" oninput="document.getElementById('canvas').style.background = this.value">
+        <br>
+        <p>Framerate</p>
+        <input type="number" min="1" max="60" value="60" oninput="this.value = Math.min(this.max, Math.max(this.min, this.value)); framerate = this.value">
+        <br>
+        <p>Texture size</p>
+        <input type="number" min="1" max="1024" value="480" oninput="xScale = this.value;">
+        x
+        <input type="number" min="1" max="1024" value="480" oninput="yScale = this.value;">
+      </div>
+    </div>
+    
+	
     <footer>
       <button class="footerBtn" onclick="document.getElementById('manageTexModal').style.display = 'block'; openTexes()">Texture editor</button>
       <button class="footerBtn" onclick="document.getElementById('manageScriptModal').style.display = 'block'; openScripts()">Script editor</button>
+      <button class="footerBtn" onclick="document.getElementById('projectSettingsModal').style.display = 'block';">Project settings</button>
     </footer>
   </body>
   <script>
+  	var xScale = 480;
+    var yScale = 480;
     var frameRate = 60;
 
 
@@ -298,11 +332,11 @@
       var stageW = parseInt(window.getComputedStyle(document.getElementById("canvas")).width);
       var stageH = parseInt(window.getComputedStyle(document.getElementById("canvas")).height);
       elemProps[name] = {
-        Texture: { value: null, type: "fSelect"},
-        Width: { value: 50, type: "nInput", min: 0, max: Infinity},
-        Height: { value: 50, type: "nInput", min: 0, max: Infinity},
-        X: { value: 0, type: "nInput", min: -Infinity, max: Infinity},
-        Y: { value: 0, type: "nInput", min: -Infinity, max: Infinity}
+        texture: { value: null, type: "fSelect"},
+        width: { value: 50, type: "nInput", min: 0, max: Infinity},
+        height: { value: 50, type: "nInput", min: 0, max: Infinity},
+        x: { value: 0, type: "nInput", min: -Infinity, max: Infinity},
+        y: { value: 0, type: "nInput", min: -Infinity, max: Infinity}
       };
       
       var img = new Image();
@@ -320,7 +354,7 @@
       Object.keys(elem).forEach(e => {
 
         var p = document.createElement("p");
-        p.textContent = e;
+        p.textContent = e[0].toUpperCase() + e.slice(1);
         sidebar.appendChild(p);
 
         switch(elem[e].type) {
@@ -364,9 +398,17 @@
             break;
           case "fSelect":
             var select = document.createElement("select");
-            select.value = elem[e].value;
             select.onchange = function() {
               elem[e].value = this.value;
+              if (e == "texture") {
+              	var img = new Image();
+                img.src = files[this.value];
+                img.onload = function() {
+                  elem.width.value = this.naturalWidth;
+                  elem.height.value = this.naturalHeight;
+                  openInspector(elem);
+                };
+              }
             };
 
             var defOpt = document.createElement("option");
@@ -382,6 +424,8 @@
 
               select.appendChild(opt);
             });
+            
+            select.value = elem[e].value || "Choose a file";
 
             sidebar.appendChild(select);
 
@@ -436,23 +480,21 @@
         }
         if (w % 2 == 0) idx++;
       }
-
-      modal.style.display = "block";
+      modal.style.display = "block";
     }
 
     function genTex(elem, name, w, h) {
-      var style = window.getComputedStyle(elem);
-      var step = Math.floor(Math.min(parseInt(style.width) / w, parseInt(style.height) / h));
+      var step = Math.floor(Math.min(xScale / w, yScale / h));
 
       var canvas2 = document.createElement("canvas");
-      canvas2.height = parseInt(style.height);
-      canvas2.width = parseInt(style.width);
+      canvas2.height = yScale;
+      canvas2.width = xScale;
       var ctx2 = canvas2.getContext("2d");
 
       var idx = 0;
       
-      for (var y = 0; y < parseInt(style.height); y += step) {
-        for (var x = 0; x < parseInt(style.width); x += step) {
+      for (var y = 0; y < h*step; y += step) {
+        for (var x = 0; x < w*step; x += step) {
           if (elem.children[idx].className == "") {
           	ctx2.fillStyle = window.getComputedStyle(elem.children[idx]).backgroundColor;
           	ctx2.fillRect(x, y, step, step);
@@ -468,7 +510,6 @@
         select.innerHTML = "";
       	var defOpt = document.createElement("option");
         defOpt.textContent = "Choose a file";
-        defOpt.selected = true;
         defOpt.disabled = true;
 
         select.appendChild(defOpt);
@@ -561,11 +602,11 @@
     var startLoop = function() {
       loop = setInterval(() => {
         for (var i of Object.keys(elements)) {
-          elements[i].src = files[elemProps[i].Texture.value];
-          elements[i].style.width = elemProps[i].Width.value + "px";
-          elements[i].style.height = elemProps[i].Height.value + "px";
-          elements[i].style.left = elemProps[i].X.value + "px";
-          elements[i].style.top = elemProps[i].Y.value + "px";
+          elements[i].src = files[elemProps[i].texture.value];
+          elements[i].style.width = elemProps[i].width.value + "px";
+          elements[i].style.height = elemProps[i].height.value + "px";
+          elements[i].style.left = elemProps[i].x.value + "px";
+          elements[i].style.top = elemProps[i].y.value + "px";
         }
       }, 1000/frameRate);
     }
