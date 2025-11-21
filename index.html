@@ -161,7 +161,7 @@
         padding:10px;
         text-align:center;
       }
-      textarea {
+      div.code {
       	width:480px;
         height:340px;
         resize:none;
@@ -169,6 +169,9 @@
         border-radius:10px;
         padding:10px;
         color:#fff;
+        text-align:left;
+        border:1px solid #777;
+        font-family:monospace;
       }
       .gridContainer {
       	display:flex;
@@ -278,7 +281,7 @@
     <div class="modalBg" id="editScriptModal">
       <div class="modal" style="width:500px;height:400px;">
         <span class="xBtn" onclick="this.parentElement.parentElement.style.display = 'none'">&times;</span>
-        <textarea id="code"></textarea>
+        <div class="code" id="code" contenteditable="true" oninput=""></div>
         <button onclick="">Save</button>
       </div>
     </div>
@@ -335,8 +338,26 @@
     
     var scripts = {};
     
-    var cycle = {
-      atTick: function(c) { runData.intervals.push(setInterval(c, 1000/frameRate)); }
+    var Spieler = {
+      atTick: function(c) {
+      	runData.intervals.push(setInterval(c, 1000/frameRate));
+      },
+      getElem: function(n) {
+      	var elem = elemProps[n];
+        
+        return {
+          getProperty: function(p) {
+          	return elem[p].value;
+          },
+          setProperty: function(p, v) {
+          	elemProps[n][p] = v;
+          }
+        };
+      },
+      addElem: function(n) {
+      	addElem(n);
+        return Spieler.getElem(n);
+      }
     };
 
     var elements = {};
@@ -425,8 +446,8 @@
               	var img = new Image();
                 img.src = files[this.value];
                 img.onload = function() {
-                  elem.width.value = this.naturalWidth / pixelSize;
-                  elem.height.value = this.naturalHeight / pixelSize;
+                  elem.width.value = Math.floor(this.naturalWidth / pixelSize);
+                  elem.height.value = Math.floor(this.naturalHeight / pixelSize);
                   openInspector(elem);
                 };
               }
@@ -548,12 +569,12 @@
     }
 
     function genTex(elem, name, w, h) {
-      var xStep = ((w * scale) / w) * pixelSize;
-      var yStep = ((h * scale) / h) * pixelSize;
+      var xStep = (w * scale) / w;
+      var yStep = (h * scale) / h;
 
       var canvas2 = document.createElement("canvas");
-      canvas2.height = h * scale * pixelSize;
-      canvas2.width = w * scale * pixelSize;
+      canvas2.height = h * scale;
+      canvas2.width = w * scale;
       var ctx2 = canvas2.getContext("2d");
 
       var idx = 0;
@@ -765,7 +786,7 @@
       modal.appendChild(canvas);
       
       for (var i of Object.keys(elemProps)) {
-      	scripts[elemProps[i].script.value](elemProps, cycle);
+      	scripts[elemProps[i].script.value](Spieler);
       }
     }
     
